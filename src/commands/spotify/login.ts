@@ -98,35 +98,6 @@ export default class Login extends Command {
     }
   }
 
-  private getDefaultBrowserName() {
-    let browserName = '';
-    switch (os.platform()) {
-      case 'darwin':
-        browserName = execSync(
-          'defaults read -g NSGlobalDomain AppleDefaultWebBrowser'
-        )
-          .toString()
-          .trim();
-        break;
-      case 'win32':
-        browserName = execSync(
-          'REG QUERY HKEY_CLASSES_ROOT\\http\\shell\\open\\command /ve | grep -i "(default)"'
-        )
-          .toString()
-          .replace(/ /g, '')
-          .replace(/(.*\\)*|\.(exe|EXE)/g, '')
-          .trim();
-        break;
-      default:
-        browserName = execSync('xdg-mime query default x-scheme-handler/http')
-          .toString()
-          .trim()
-          .split('.')[0];
-        break;
-    }
-    return browserName.toLowerCase();
-  }
-
   private async checkUserAlreadyLoggedIn() {
     const userCredentials = await getUserCredentials();
 
@@ -135,10 +106,10 @@ export default class Login extends Command {
     }
 
     const alreadyLoggedIn =
-      userCredentials?.to?.accessToken != null &&
-      userCredentials?.to?.refreshToken != null &&
-      userCredentials?.from?.accessToken != null &&
-      userCredentials?.from?.refreshToken != null;
+      (userCredentials?.to?.accessToken ?? '') !== '' &&
+      (userCredentials?.to?.refreshToken ?? '') !== '' &&
+      (userCredentials?.from?.accessToken ?? '') !== '' &&
+      (userCredentials?.from?.refreshToken ?? '') !== '';
 
     if (!alreadyLoggedIn) {
       return;
@@ -152,29 +123,6 @@ export default class Login extends Command {
       this.exit(0);
     }
   }
-
-  // private async startDeviceCodeFlow(): Promise<UserCredentials> {
-  //   const { device_code, interval, verification_uri, user_code } =
-  //     await this.spotifyService.getDeviceCode();
-
-  //   this.log(`⚠️  First copy your one-time code: ${user_code}`);
-
-  //   await ux.anykey('Press any key to open Spotify in your browser');
-
-  //   open(verification_uri);
-
-  //   ux.action.start('Waiting for authentication');
-
-  //   const { access_token, refresh_token } = await this.spotifyService.poolToken(
-  //     device_code,
-  //     interval
-  //   );
-
-  //   return {
-  //     accessToken: access_token,
-  //     refreshToken: refresh_token,
-  //   };
-  // }
 
   private async startAuthorizationCodeFlow(): Promise<Tokens> {
     const { codeVerifier, codeChallenge, state } = generatePkceChallenge();

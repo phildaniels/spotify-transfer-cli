@@ -7,7 +7,6 @@ export default class AuthLogout extends Command {
   static description = 'Log out of Spotify';
 
   public async run(): Promise<void> {
-    const spotifyService = new SpotifyService();
     saveUserCredentials({
       to: {
         accessToken: '',
